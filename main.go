@@ -54,6 +54,7 @@ func main() {
 	router.Get("/", homeHandler)
 
 	router.Post("/users", apiCfg.createUser)
+	router.Get("/users", apiCfg.authMiddleware(apiCfg.getUser))
 
 	server := &http.Server{
 		Handler: router,
