@@ -41,6 +41,16 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
+const deleteTask = `-- name: DeleteTask :exec
+DELETE FROM tasks
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTask(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteTask, id)
+	return err
+}
+
 const getUserTasks = `-- name: GetUserTasks :many
 SELECT id, name, iscompleted, user_id FROM tasks WHERE user_id = $1
 `
@@ -71,4 +81,28 @@ func (q *Queries) GetUserTasks(ctx context.Context, userID uuid.UUID) ([]Task, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const toggleTaskStatus = `-- name: ToggleTaskStatus :one
+UPDATE tasks
+SET isCompleted = $1
+WHERE id = $2
+RETURNING id, name, iscompleted, user_id
+`
+
+type ToggleTaskStatusParams struct {
+	Iscompleted bool
+	ID          uuid.UUID
+}
+
+func (q *Queries) ToggleTaskStatus(ctx context.Context, arg ToggleTaskStatusParams) (Task, error) {
+	row := q.db.QueryRowContext(ctx, toggleTaskStatus, arg.Iscompleted, arg.ID)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Iscompleted,
+		&i.UserID,
+	)
+	return i, err
 }

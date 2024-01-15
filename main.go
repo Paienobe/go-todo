@@ -57,11 +57,12 @@ func main() {
 	router.Post("/login", apiCfg.login)
 
 	router.Post("/create", apiCfg.isAuthorized(apiCfg.createTask))
+	router.Put("/update", apiCfg.isAuthorized(apiCfg.updateTask))
 
 	router.Get("/test", apiCfg.isAuthorized(apiCfg.getUser))
 
 	// next steps
-	// create task
+
 	// update task
 	// delete task
 
