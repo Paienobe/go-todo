@@ -13,7 +13,7 @@ func GetApiKey(r *http.Request) (string, error) {
 		return "", errors.New("no auth found")
 	}
 
-	if authValues[0] != "ApiKey" {
+	if authValues[0] != "Bearer" {
 		return "", errors.New("malformed auth")
 	}
 

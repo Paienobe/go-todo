@@ -59,3 +59,25 @@ func (q *Queries) GetUserByApiKey(ctx context.Context, apikey string) (User, err
 	)
 	return i, err
 }
+
+const getUserByNameAndEmail = `-- name: GetUserByNameAndEmail :one
+SELECT id, name, email, created_at, apikey FROM users WHERE name = $1 AND email = $2
+`
+
+type GetUserByNameAndEmailParams struct {
+	Name  string
+	Email string
+}
+
+func (q *Queries) GetUserByNameAndEmail(ctx context.Context, arg GetUserByNameAndEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByNameAndEmail, arg.Name, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.CreatedAt,
+		&i.Apikey,
+	)
+	return i, err
+}

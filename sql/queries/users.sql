@@ -5,3 +5,6 @@ RETURNING *;
 
 -- name: GetUserByApiKey :one
 SELECT * FROM users WHERE apikey = $1;
+
+-- name: GetUserByNameAndEmail :one
+SELECT * FROM users WHERE name = $1 AND email = $2;

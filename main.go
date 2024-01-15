@@ -53,8 +53,17 @@ func main() {
 
 	router.Get("/", homeHandler)
 
-	router.Post("/users", apiCfg.createUser)
-	router.Get("/users", apiCfg.authMiddleware(apiCfg.getUser))
+	router.Post("/register", apiCfg.createUser)
+	router.Post("/login", apiCfg.login)
+
+	router.Post("/create", apiCfg.isAuthorized(apiCfg.createTask))
+
+	router.Get("/test", apiCfg.isAuthorized(apiCfg.getUser))
+
+	// next steps
+	// create task
+	// update task
+	// delete task
 
 	server := &http.Server{
 		Handler: router,

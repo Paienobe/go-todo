@@ -24,3 +24,32 @@ func dbUserToUser(dbUser database.User) User {
 		Apikey:    dbUser.Apikey,
 	}
 }
+
+type Task struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Iscompleted bool      `json:"isCompleted"`
+	UserID      uuid.UUID `json:"userId"`
+}
+
+func dbTaskToTask(dbTask database.Task) Task {
+	return Task{
+		ID:          dbTask.ID,
+		Name:        dbTask.Name,
+		Iscompleted: dbTask.Iscompleted,
+		UserID:      dbTask.UserID,
+	}
+}
+
+func dbTasksToTasks(dbTasks []database.Task) []Task {
+	tasks := []Task{}
+	for _, dbTask := range dbTasks {
+		tasks = append(tasks, Task{
+			ID:          dbTask.ID,
+			Name:        dbTask.Name,
+			Iscompleted: dbTask.Iscompleted,
+			UserID:      dbTask.UserID,
+		})
+	}
+	return tasks
+}
