@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-func GenerateJWT(name, email string) (string, error) {
+func GenerateJWT(email string, id uuid.UUID) (string, error) {
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey == "" {
 		log.Fatal("JWT_SECRET does not exist in environment")
@@ -19,7 +20,7 @@ func GenerateJWT(name, email string) (string, error) {
 
 	claims["authorized"] = true
 	claims["email"] = email
-	claims["name"] = name
+	claims["id"] = id
 	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	tokenString, err := token.SignedString(mySigningKey)

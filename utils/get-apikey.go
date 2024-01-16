@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func GetApiKey(r *http.Request) (string, error) {
+func GetBearerToken(r *http.Request) (string, error) {
 	authorization := r.Header.Get("Authorization")
 	authValues := strings.Split(authorization, " ")
 	if authValues[0] == "" {

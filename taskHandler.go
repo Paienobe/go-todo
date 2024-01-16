@@ -6,16 +6,14 @@ import (
 	"net/http"
 
 	"github.com/Paienobe/go-todo/internal/database"
+	"github.com/Paienobe/go-todo/types"
 	"github.com/Paienobe/go-todo/utils"
 	"github.com/google/uuid"
 )
 
 func (apiCfg *apiConfig) createTask(w http.ResponseWriter, r *http.Request, user database.User) {
-	type parameters struct {
-		Name string `json:"name"`
-	}
 
-	params := parameters{}
+	params := types.CreateTaskParams{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -31,6 +29,7 @@ func (apiCfg *apiConfig) createTask(w http.ResponseWriter, r *http.Request, user
 	})
 
 	if err != nil {
+		fmt.Println("err from create Task", err)
 		utils.ResponsWithError(w, 400, fmt.Sprintf("Failed to create task %v", err))
 		return
 	}
@@ -64,4 +63,29 @@ func (apiCfg *apiConfig) updateTask(w http.ResponseWriter, r *http.Request, user
 	}
 
 	utils.RespondWithJSON(w, 200, dbTaskToTask(task))
+}
+
+func (apiCfg *apiConfig) deleteTask(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameters struct {
+		ID uuid.UUID `json:"id"`
+	}
+
+	params := parameters{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&params)
+	if err != nil {
+		utils.ResponsWithError(w, 400, fmt.Sprintf("Error parsing body %v", err))
+		return
+	}
+
+	err = apiCfg.DB.DeleteTask(r.Context(), params.ID)
+	if err != nil {
+		utils.ResponsWithError(w, 400, fmt.Sprintf("Error deleting task %v", err))
+		return
+	}
+
+	type success struct {
+		Msg string `json:"msg"`
+	}
+	utils.RespondWithJSON(w, 200, success{Msg: "task deleted"})
 }

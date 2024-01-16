@@ -22,5 +22,5 @@ type User struct {
 	Name      string
 	Email     string
 	CreatedAt time.Time
-	Apikey    string
+	Password  string
 }

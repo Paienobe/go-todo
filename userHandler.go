@@ -3,21 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/Paienobe/go-todo/internal/database"
+	"github.com/Paienobe/go-todo/types"
 	"github.com/Paienobe/go-todo/utils"
 	"github.com/google/uuid"
 )
 
 func (apiCfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
-	}
 
-	params := parameters{}
+	params := types.RegistrationParams{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -25,15 +23,27 @@ func (apiCfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
-		ID: uuid.New(), Name: params.Name, Email: params.Email, CreatedAt: time.Now().UTC(),
+	hashedPassword, err := utils.GeneratehashPassword(params.Password)
+	if err != nil {
+		log.Println("Failed to hash password", err)
+		return
+	}
+
+	err = apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+		ID:        uuid.New(),
+		Name:      params.Name,
+		Email:     params.Email,
+		CreatedAt: time.Now().UTC(),
+		Password:  hashedPassword,
 	})
 
 	if err != nil {
 		utils.ResponsWithError(w, 500, "Failed to create user")
 	}
 
-	utils.RespondWithJSON(w, 201, dbUserToUser(user))
+	utils.RespondWithJSON(w, 201, types.RegistrationSuccess{
+		Success: true, Message: "User created.",
+	})
 }
 
 func (apiCfg *apiConfig) getUser(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -41,12 +51,8 @@ func (apiCfg *apiConfig) getUser(w http.ResponseWriter, r *http.Request, user da
 }
 
 func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
-	type parameters struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
-	}
 
-	params := parameters{}
+	params := types.LoginParams{}
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
@@ -55,19 +61,23 @@ func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := apiCfg.DB.GetUserByNameAndEmail(r.Context(), database.GetUserByNameAndEmailParams{
-		Name:  params.Name,
-		Email: params.Email,
-	})
+	user, err := apiCfg.DB.GetUserByEmail(r.Context(), params.Email)
 
 	if err != nil {
 		utils.ResponsWithError(w, 400, fmt.Sprintf("Failed to find user %v", err))
 		return
 	}
 
-	tokenString, err := utils.GenerateJWT(user.Name, user.Email)
+	passwordIsCorrect := utils.CheckPasswordHash(params.Password, user.Password)
+	if !passwordIsCorrect {
+		utils.ResponsWithError(w, 401, "Password is incorrect")
+		return
+	}
+
+	tokenString, err := utils.GenerateJWT(user.Email, user.ID)
 	if err != nil {
 		utils.ResponsWithError(w, 500, fmt.Sprintf("failed to generate JWT %v", err))
+		return
 	}
 
 	tasks, err := apiCfg.DB.GetUserTasks(r.Context(), user.ID)

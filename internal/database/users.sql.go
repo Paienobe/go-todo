@@ -12,10 +12,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, email, created_at, apikey)
-VALUES($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
-RETURNING id, name, email, created_at, apikey
+const createUser = `-- name: CreateUser :exec
+INSERT INTO users (id, name, email, created_at, password)
+VALUES($1, $2, $3, $4, $5)
 `
 
 type CreateUserParams struct {
@@ -23,61 +22,33 @@ type CreateUserParams struct {
 	Name      string
 	Email     string
 	CreatedAt time.Time
+	Password  string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
+	_, err := q.db.ExecContext(ctx, createUser,
 		arg.ID,
 		arg.Name,
 		arg.Email,
 		arg.CreatedAt,
+		arg.Password,
 	)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Email,
-		&i.CreatedAt,
-		&i.Apikey,
-	)
-	return i, err
+	return err
 }
 
-const getUserByApiKey = `-- name: GetUserByApiKey :one
-SELECT id, name, email, created_at, apikey FROM users WHERE apikey = $1
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, email, created_at, password FROM users WHERE email = $1
 `
 
-func (q *Queries) GetUserByApiKey(ctx context.Context, apikey string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByApiKey, apikey)
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.CreatedAt,
-		&i.Apikey,
-	)
-	return i, err
-}
-
-const getUserByNameAndEmail = `-- name: GetUserByNameAndEmail :one
-SELECT id, name, email, created_at, apikey FROM users WHERE name = $1 AND email = $2
-`
-
-type GetUserByNameAndEmailParams struct {
-	Name  string
-	Email string
-}
-
-func (q *Queries) GetUserByNameAndEmail(ctx context.Context, arg GetUserByNameAndEmailParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByNameAndEmail, arg.Name, arg.Email)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Email,
-		&i.CreatedAt,
-		&i.Apikey,
+		&i.Password,
 	)
 	return i, err
 }

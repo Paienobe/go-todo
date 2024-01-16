@@ -17,7 +17,7 @@ package utils
 // 			log.Fatal("JWT_SECRET does not exist in environment")
 // 		}
 
-// 		tokenString, err := GetApiKey(r)
+// 		tokenString, err := GetBearerToken(r)
 // 		if err != nil {
 // 			log.Fatal(err)
 // 		}
