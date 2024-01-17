@@ -91,10 +91,11 @@ func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(time.Minute * 10),
 	})
 
-	type Success struct {
-		Tasks []Task `json:"tasks"`
+	type LoginSuccess struct {
+		Success bool   `json:"success"`
+		Tasks   []Task `json:"tasks"`
 	}
 
-	utils.RespondWithJSON(w, 200, Success{Tasks: dbTasksToTasks(tasks)})
+	utils.RespondWithJSON(w, 200, LoginSuccess{Success: true, Tasks: dbTasksToTasks(tasks)})
 
 }
