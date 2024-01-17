@@ -85,17 +85,16 @@ func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		utils.ResponsWithError(w, 500, fmt.Sprintf("could'nt find tasks for this user %v", err))
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "go_todo_jwt",
-		Value:   tokenString,
-		Expires: time.Now().Add(time.Minute * 10),
-	})
-
 	type LoginSuccess struct {
 		Success bool   `json:"success"`
 		Tasks   []Task `json:"tasks"`
+		Token   string `json:"token"`
 	}
 
-	utils.RespondWithJSON(w, 200, LoginSuccess{Success: true, Tasks: dbTasksToTasks(tasks)})
+	utils.RespondWithJSON(w, 200, LoginSuccess{
+		Success: true,
+		Tasks:   dbTasksToTasks(tasks),
+		Token:   tokenString,
+	})
 
 }
