@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Paienobe/go-todo/internal/database"
 	"github.com/Paienobe/go-todo/types"
 	"github.com/Paienobe/go-todo/utils"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 )
 
@@ -66,19 +68,13 @@ func (apiCfg *apiConfig) updateTask(w http.ResponseWriter, r *http.Request, user
 }
 
 func (apiCfg *apiConfig) deleteTask(w http.ResponseWriter, r *http.Request, user database.User) {
-	type parameters struct {
-		ID uuid.UUID `json:"id"`
-	}
 
-	params := parameters{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&params)
+	taskId, err := uuid.Parse(chi.URLParam(r, "task_id"))
 	if err != nil {
-		utils.ResponsWithError(w, 400, fmt.Sprintf("Error parsing body %v", err))
-		return
+		log.Println("Failed to parse id", err)
 	}
 
-	err = apiCfg.DB.DeleteTask(r.Context(), params.ID)
+	err = apiCfg.DB.DeleteTask(r.Context(), taskId)
 	if err != nil {
 		utils.ResponsWithError(w, 400, fmt.Sprintf("Error deleting task %v", err))
 		return

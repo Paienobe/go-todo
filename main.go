@@ -58,7 +58,7 @@ func main() {
 
 	router.Post("/create", apiCfg.isAuthorized(apiCfg.createTask))
 	router.Put("/update", apiCfg.isAuthorized(apiCfg.updateTask))
-	router.Delete("/delete", apiCfg.isAuthorized(apiCfg.deleteTask))
+	router.Delete("/delete/{task_id}", apiCfg.isAuthorized(apiCfg.deleteTask))
 
 	router.Get("/test", apiCfg.isAuthorized(apiCfg.getUser))
 
