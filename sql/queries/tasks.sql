@@ -15,3 +15,7 @@ RETURNING *;
 -- name: DeleteTask :exec
 DELETE FROM tasks
 WHERE id = $1;
+
+-- name: DeleteAllUserTasks :exec
+DELETE FROM tasks
+WHERE user_id = $1;

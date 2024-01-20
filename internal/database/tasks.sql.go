@@ -41,6 +41,16 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
+const deleteAllUserTasks = `-- name: DeleteAllUserTasks :exec
+DELETE FROM tasks
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteAllUserTasks(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteAllUserTasks, userID)
+	return err
+}
+
 const deleteTask = `-- name: DeleteTask :exec
 DELETE FROM tasks
 WHERE id = $1

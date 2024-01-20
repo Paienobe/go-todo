@@ -80,8 +80,15 @@ func (apiCfg *apiConfig) deleteTask(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
-	type success struct {
-		Msg string `json:"msg"`
+	utils.RespondWithJSON(w, 200, types.Success{Msg: "task deleted"})
+}
+
+func (apiCfg *apiConfig) deleteAllUserTasks(w http.ResponseWriter, r *http.Request, user database.User) {
+	err := apiCfg.DB.DeleteAllUserTasks(r.Context(), user.ID)
+	if err != nil {
+		utils.ResponsWithError(w, 400, fmt.Sprintf("Failed to delete tasks %v", err))
+		return
 	}
-	utils.RespondWithJSON(w, 200, success{Msg: "task deleted"})
+
+	utils.RespondWithJSON(w, 200, types.Success{Msg: "All tasks deleted"})
 }
