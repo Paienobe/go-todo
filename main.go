@@ -61,7 +61,7 @@ func main() {
 	router.Delete("/delete/{task_id}", apiCfg.isAuthorized(apiCfg.deleteTask))
 	router.Delete("/delete-all", apiCfg.isAuthorized(apiCfg.deleteAllUserTasks))
 
-	router.Get("/test", apiCfg.isAuthorized(apiCfg.getUser))
+	router.Get("/check-validity", apiCfg.isAuthorized(apiCfg.GetUserTasks))
 
 	server := &http.Server{
 		Handler: router,

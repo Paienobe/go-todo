@@ -46,8 +46,14 @@ func (apiCfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (apiCfg *apiConfig) getUser(w http.ResponseWriter, r *http.Request, user database.User) {
-	utils.RespondWithJSON(w, 200, dbUserToUser(user))
+func (apiCfg *apiConfig) GetUserTasks(w http.ResponseWriter, r *http.Request, user database.User) {
+	tasks, err := apiCfg.DB.GetUserTasks(r.Context(), user.ID)
+	if err != nil {
+		utils.ResponsWithError(w, 400, "Error fethcing tasks")
+		return
+	}
+
+	utils.RespondWithJSON(w, 200, dbTasksToTasks(tasks))
 }
 
 func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
@@ -91,15 +97,7 @@ func (apiCfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(time.Minute * 10),
 	})
 
-	type LoginSuccess struct {
-		Success bool   `json:"success"`
-		Tasks   []Task `json:"tasks"`
-		Token   string `json:"token"`
-	}
-
-	w.Header().Set("Authorization", tokenString)
-
-	utils.RespondWithJSON(w, 200, LoginSuccess{
+	utils.RespondWithJSON(w, 200, types.LoginSuccess[Task]{
 		Success: true,
 		Tasks:   dbTasksToTasks(tasks),
 		Token:   tokenString,
